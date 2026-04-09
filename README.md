@@ -37,6 +37,9 @@ envchain set myproject --profile dev API_KEY=secret123
 # List all variables in a profile
 envchain list myproject --profile dev
 
+# Remove a variable from a profile
+envchain unset myproject --profile dev API_KEY
+
 # Execute a command with the environment loaded
 envchain exec myproject --profile dev -- python app.py
 
@@ -45,6 +48,9 @@ eval $(envchain export myproject --profile prod)
 
 # Switch between profiles
 envchain use myproject --profile staging
+
+# Copy variables from one profile to another
+envchain copy myproject --from dev --to staging
 ```
 
 ## Configuration
