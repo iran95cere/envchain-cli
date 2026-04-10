@@ -81,3 +81,34 @@ class EnvRunner:
             profile_name=profile_name,
             injected_vars=injected,
         )
+
+    def list_injected(
+        self,
+        profile_name: str,
+        override_existing: bool = False,
+    ) -> List[str]:
+        """Return the variable names that *would* be injected for a profile.
+
+        Performs the same name-collision logic as :meth:`run` without actually
+        executing any subprocess.  Useful for dry-run previews.
+
+        Args:
+            profile_name: Profile to inspect.
+            override_existing: Mirror the flag passed to :meth:`run`.
+
+        Returns:
+            Sorted list of variable names that would be injected.
+
+        Raises:
+            KeyError: If the profile does not exist.
+        """
+        profile = self._storage.load_profile(profile_name, self._password)
+        if profile is None:
+            raise KeyError(f"Profile {profile_name!r} not found")
+
+        current_env = os.environ
+        return sorted(
+            name
+            for name in profile.variables
+            if override_existing or name not in current_env
+        )
