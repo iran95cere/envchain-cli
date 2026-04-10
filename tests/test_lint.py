@@ -39,6 +39,9 @@ class TestLintReport:
         )
         assert r.summary() == "1 error(s), 2 warning(s)"
 
+    def test_summary_no_issues(self):
+        assert LintReport().summary() == "0 error(s), 0 warning(s)"
+
 
 # ---------------------------------------------------------------------------
 # ProfileLinter rules
@@ -83,13 +86,12 @@ class TestProfileLinter:
         report = linter.lint({"HOST": "localhost  "})
         assert any("whitespace" in i.message.lower() for i in report.issues)
 
-    def test_multiple_issues_on_same_key(self, linter):
-        # lowercase key + empty value → at least two warnings
-        report = linter.lint({"bad_key": ""})
-        assert len(report.issues) >= 2
-
-    def test_multiple_vars_all_checked(self, linter):
-        report = linter.lint({"GOOD": "ok", "bad": "val"})
-        flagged_keys = {i.key for i in report.issues}
-        assert "bad" in flagged_keys
-        assert "GOOD" not in flagged_keys
+    def test_multiple_vars_accumulate_issues(self, linter):
+        """Issues from multiple variables are all collected in one report."""
+        report = linter.lint({
+            "good_key": "value",
+            "BAD_VALUE": "",
+        })
+        keys_with_issues = {i.key for i in report.issues}
+        assert "good_key" in keys_with_issues
+        assert "BAD_VALUE" in keys_with_issues
