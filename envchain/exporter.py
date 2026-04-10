@@ -27,11 +27,15 @@ class EnvExporter:
             raise ValueError(f"Unsupported export format: {fmt}")
         return handler(variables)
 
+    def _escape_value(self, value: str) -> str:
+        """Escape backslashes and double quotes in a variable value."""
+        return value.replace("\\", "\\\\").replace('"', '\\"')
+
     def _export_bash(self, variables: Dict[str, str]) -> str:
         """Export as bash export statements."""
         lines = []
         for key, value in sorted(variables.items()):
-            escaped = value.replace("\\", "\\\\").replace('"', '\\"')
+            escaped = self._escape_value(value)
             lines.append(f'export {key}="{escaped}"')
         return "\n".join(lines)
 
@@ -39,7 +43,7 @@ class EnvExporter:
         """Export as fish shell set statements."""
         lines = []
         for key, value in sorted(variables.items()):
-            escaped = value.replace("\\", "\\\\").replace('"', '\\"')
+            escaped = self._escape_value(value)
             lines.append(f'set -x {key} "{escaped}"')
         return "\n".join(lines)
 
@@ -47,7 +51,7 @@ class EnvExporter:
         """Export as .env file format."""
         lines = []
         for key, value in sorted(variables.items()):
-            escaped = value.replace("\\", "\\\\").replace('"', '\\"')
+            escaped = self._escape_value(value)
             lines.append(f'{key}="{escaped}"')
         return "\n".join(lines)
 
