@@ -24,6 +24,17 @@ cd envchain-cli
 pip install -e .
 ```
 
+## Quick Start
+
+```bash
+# Initialize a new envchain for your project
+envchain init myproject
+
+# Set a variable and run your app in one step
+envchain set myproject --profile dev DATABASE_URL=postgresql://localhost/mydb
+envchain exec myproject --profile dev -- python app.py
+```
+
 ## Usage
 
 ```bash
@@ -51,6 +62,9 @@ envchain use myproject --profile staging
 
 # Copy variables from one profile to another
 envchain copy myproject --from dev --to staging
+
+# Delete a project and all its profiles
+envchain delete myproject
 ```
 
 ## Configuration
@@ -60,6 +74,8 @@ Environment chains are stored encrypted in `~/.envchain/` by default. You can cu
 ## Security
 
 All environment variables are encrypted at rest using AES-256-GCM. Master passwords are derived using PBKDF2 with a high iteration count.
+
+> ⚠️ **Never commit your master password or the `~/.envchain/` directory to version control.**
 
 ## License
 
