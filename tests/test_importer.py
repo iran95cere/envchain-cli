@@ -76,3 +76,15 @@ class TestEnvImporter:
         path = tmp_file("bad.json", '["not", "a", "dict"]')
         with pytest.raises(ValueError, match="top-level object"):
             importer.import_file(path, fmt=ImportFormat.JSON)
+
+    def test_parse_dotenv_ignores_blank_lines(self, importer, tmp_file):
+        """Blank lines in a .env file should be silently skipped."""
+        path = tmp_file(".env", "FOO=bar\n\n\nBAZ=qux\n")
+        result = importer.import_file(path)
+        assert result == {"FOO": "bar", "BAZ": "qux"}
+
+    def test_parse_dotenv_inline_comment_ignored(self, importer, tmp_file):
+        """Values should not include trailing inline comments."""
+        path = tmp_file(".env", "KEY=value # this is a comment\n")
+        result = importer.import_file(path)
+        assert result["KEY"] == "value"
