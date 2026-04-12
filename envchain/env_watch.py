@@ -41,6 +41,17 @@ class ProfileWatcher:
         """Register a callback invoked with each WatchEvent."""
         self._handlers.append(handler)
 
+    def remove_handler(self, handler: Callable[[WatchEvent], None]) -> bool:
+        """Unregister a previously registered callback.
+
+        Returns True if the handler was found and removed, False otherwise.
+        """
+        try:
+            self._handlers.remove(handler)
+            return True
+        except ValueError:
+            return False
+
     def _emit(self, event: WatchEvent) -> None:
         for h in self._handlers:
             h(event)
@@ -86,9 +97,4 @@ class ProfileWatcher:
         return events
 
     def run(self, max_cycles: Optional[int] = None) -> None:
-        """Block and poll indefinitely (or up to *max_cycles* iterations)."""
-        cycles = 0
-        while max_cycles is None or cycles < max_cycles:
-            self.poll()
-            time.sleep(self.poll_interval)
-            cycles += 1
+        """Block and poll indefinitely (or up
