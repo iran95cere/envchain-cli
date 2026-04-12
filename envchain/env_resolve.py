@@ -61,6 +61,15 @@ class EnvResolver:
                 result.resolved[name] = resolved_value
         return result
 
+    def references(self, value: str) -> List[str]:
+        """Return a list of variable names referenced in *value*.
+
+        Example::
+
+            resolver.references("${HOST}:${PORT}")  # -> ['HOST', 'PORT']
+        """
+        return _REF_PATTERN.findall(value)
+
     def _resolve_value(
         self,
         name: str,
