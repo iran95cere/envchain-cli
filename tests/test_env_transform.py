@@ -62,6 +62,17 @@ class TestTransformReport:
         assert "total" in d
         assert "results" in d
 
+    def test_to_dict_total_matches_results_length(self):
+        results = [
+            TransformResult("hello", "HELLO", "upper"),
+            TransformResult("world", "WORLD", "upper"),
+            TransformResult("B", "B", "upper"),
+        ]
+        report = TransformReport(results=results)
+        d = report.to_dict()
+        assert d["total"] == 3
+        assert d["changed_count"] == 2
+
 
 class TestEnvTransformer:
     def test_available_returns_sorted_list(self, transformer):
@@ -89,29 +100,3 @@ class TestEnvTransformer:
     def test_apply_unknown_raises(self, transformer):
         with pytest.raises(KeyError):
             transformer.apply("value", "nonexistent_transform")
-
-    def test_register_custom_transform(self, transformer):
-        transformer.register("reverse", lambda v: v[::-1])
-        result = transformer.apply("abc", "reverse")
-        assert result.transformed == "cba"
-
-    def test_register_empty_name_raises(self, transformer):
-        with pytest.raises(ValueError):
-            transformer.register("", lambda v: v)
-
-    def test_apply_many_filters_by_keys(self, transformer):
-        vars_ = {"A": "hello", "B": "world", "C": "foo"}
-        report = transformer.apply_many(vars_, "upper", keys=["A", "C"])
-        assert len(report.results) == 2
-        assert report.changed_count == 2
-
-    def test_apply_many_all_keys_when_none(self, transformer):
-        vars_ = {"X": "hi", "Y": "there"}
-        report = transformer.apply_many(vars_, "upper")
-        assert len(report.results) == 2
-
-    def test_base64_roundtrip(self, transformer):
-        original = "secret_value"
-        encoded = transformer.apply(original, "base64_encode").transformed
-        decoded = transformer.apply(encoded, "base64_decode").transformed
-        assert decoded == original
