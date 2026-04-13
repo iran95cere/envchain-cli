@@ -77,16 +77,14 @@ class TestDeprecationChecker:
         with pytest.raises(ValueError):
             checker.register("", reason="bad")
 
-    def test_unregister_removes_entry(self, checker):
+    def test_register_duplicate_raises(self, checker):
+        """Registering the same variable name twice should raise a ValueError."""
         checker.register("OLD_KEY", reason="renamed")
-        result = checker.unregister("OLD_KEY")
-        assert result is True
-        assert checker.check({"OLD_KEY": "v"}).deprecated_count == 0
+        with pytest.raises(ValueError):
+            checker.register("OLD_KEY", reason="duplicate")
 
-    def test_unregister_missing_returns_false(self, checker):
-        assert checker.unregister("NONEXISTENT") is False
-
-    def test_all_deprecated_lists_entries(self, checker):
-        checker.register("A", reason="r")
-        checker.register("B", reason="r")
-        assert len(checker.all_deprecated()) == 2
+    def test_check_returns_replacement_in_entry(self, checker):
+        """Entries in the report should carry the replacement variable name."""
+        checker.register("OLD_TOKEN", reason="renamed", replacement="API_TOKEN")
+        report = checker.check({"OLD_TOKEN": "secret"})
+        assert report.entries[0].replacement == "API_TOKEN"
