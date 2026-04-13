@@ -67,3 +67,23 @@ class EnvStats:
             self.compute(name, variables)
             for name, variables in sorted(profiles.items())
         ]
+
+    def total_variable_count(self, profiles: Dict[str, Dict[str, str]]) -> int:
+        """Return the total number of variables across all profiles.
+
+        Duplicate keys that appear in multiple profiles are counted once
+        per profile, reflecting actual storage rather than unique keys.
+        """
+        return sum(len(variables) for variables in profiles.values())
+
+    def find_duplicate_keys(self, profiles: Dict[str, Dict[str, str]]) -> Dict[str, List[str]]:
+        """Return keys that appear in more than one profile.
+
+        Returns a mapping of key -> list of profile names that define it.
+        Only keys present in two or more profiles are included.
+        """
+        key_to_profiles: Dict[str, List[str]] = {}
+        for profile_name, variables in profiles.items():
+            for key in variables:
+                key_to_profiles.setdefault(key, []).append(profile_name)
+        return {key: names for key, names in key_to_profiles.items() if len(names) > 1}
