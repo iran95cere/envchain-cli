@@ -91,5 +91,16 @@ class TestEnvAuditor:
         log_path = Path(tmp_dir) / "audit.log"
         assert not log_path.exists()
 
-    def test_clear_is_safe_when_no_log(self, auditor):
-        auditor.clear()  # should not raise
+    def test_clear_on_missing_log_does_not_raise(self, auditor):
+        """Clearing when no log file exists should succeed silently."""
+        # No records written; clearing should not raise any exception
+        auditor.clear()
+
+    def test_read_events_filters_by_action(self, auditor):
+        """Events can be filtered by action type."""
+        auditor.record("init", "dev")
+        auditor.record("load", "dev")
+        auditor.record("load", "prod")
+        events = auditor.read_events(action="load")
+        assert len(events) == 2
+        assert all(e.action == "load" for e in events)
