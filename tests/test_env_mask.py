@@ -37,6 +37,18 @@ class TestMaskRule:
         result = rule.apply("short")
         assert result == "short"
 
+    def test_apply_single_char_value(self):
+        """A single-character value with reveal_chars=0 should be fully masked."""
+        rule = MaskRule(r"(?i)secret", mask_char="*", reveal_chars=0)
+        assert rule.apply("x") == "*"
+
+    def test_mask_char_used_in_output(self):
+        """Ensure the specified mask_char appears in the masked output."""
+        rule = MaskRule(r"(?i)secret", mask_char="X", reveal_chars=0)
+        result = rule.apply("hello")
+        assert result == "XXXXX"
+        assert "*" not in result
+
 
 class TestMaskReport:
     def test_mask_count(self):
@@ -85,7 +97,6 @@ class TestEnvMasker:
 
     def test_custom_masker_no_default_rules(self):
         custom = EnvMasker(rules=[MaskRule(r"(?i)custom")])
-        report = custom.mask({"DB_PASSWORD": "plain", "CUSTOM_VAR": "secret"})
-        # DB_PASSWORD not masked because no default rules
-        assert report.masked["DB_PASSWORD"] == "plain"
+        report = custom.mask({"CUSTOM_VAR": "secret", "DB_PASSWORD": "should_not_mask"})
         assert "CUSTOM_VAR" in report.masked_keys
+        assert "DB_PASSWORD" not in report.masked_keys
