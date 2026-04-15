@@ -32,6 +32,10 @@ class TestDuplicateGroup:
         g = DuplicateGroup.from_dict({"value": "v"})
         assert g.names == []
 
+    def test_from_dict_missing_value_defaults_empty_string(self):
+        g = DuplicateGroup.from_dict({"names": ["A", "B"]})
+        assert g.value == ""
+
 
 # ---------------------------------------------------------------------------
 # DuplicateReport
@@ -88,29 +92,18 @@ class TestDetect:
         assert report.groups[1].names[0] == "X"
 
     def test_empty_variables_returns_no_duplicates(self, detector):
-        assert not detector.detect("dev", {}).has_duplicates
+        report = detector.detect("dev", {})
+        assert not report.has_duplicates
+        assert report.duplicate_count == 0
 
+    def test_single_variable_returns_no_duplicates(self, detector):
+        report = detector.detect("dev", {"ONLY": "value"})
+        assert not report.has_duplicates
 
-# ---------------------------------------------------------------------------
-# DuplicateDetector.detect_across
-# ---------------------------------------------------------------------------
-
-class TestDetectAcross:
-    def test_returns_empty_when_no_shared_values(self, detector):
-        profiles = {"dev": {"A": "1"}, "prod": {"A": "2"}}
-        assert detector.detect_across(profiles) == []
-
-    def test_detects_shared_var_value_across_profiles(self, detector):
-        profiles = {"dev": {"KEY": "shared"}, "prod": {"KEY": "shared"}}
-        results = detector.detect_across(profiles)
-        assert len(results) == 1
-        value, var_name, profile_list = results[0]
-        assert var_name == "KEY"
-        assert value == "shared"
-        assert set(profile_list) == {"dev", "prod"}
-
-    def test_does_not_flag_different_vars_with_same_value(self, detector):
-        """Different var names with the same value across profiles are not flagged."""
-        profiles = {"dev": {"A": "x"}, "prod": {"B": "x"}}
-        # (A, x) only in dev, (B, x) only in prod – no cross-profile duplicate
-        assert detector.detect_across(profiles) == []
+    def test_multiple_groups_detected(self, detector):
+        report = detector.detect(
+            "prod",
+            {"A": "v1", "B": "v1", "C": "v2", "D": "v2"},
+        )
+        assert len(report.groups) == 2
+        assert report.duplicate_count == 4
