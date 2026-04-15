@@ -78,5 +78,7 @@ class TestEnvRenamer:
         assert val is None
 
     def test_rename_one_returns_none_on_conflict(self, renamer, sample_vars):
+        # DB_PORT already exists, so renaming DB_HOST -> DB_PORT should return None
         val = renamer.rename_one(sample_vars, "DB_HOST", "DB_PORT")
         assert val is None
+        assert "DB_HOST" in sample_vars  # original key should remain untouched
