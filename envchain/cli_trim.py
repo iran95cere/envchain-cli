@@ -12,6 +12,13 @@ class TrimCommand:
         self._trimmer = EnvTrimmer()
 
     def run(self, profile_name: str, password: str, dry_run: bool = False) -> None:
+        """Trim leading/trailing whitespace from all variables in a profile.
+
+        Args:
+            profile_name: Name of the profile to process.
+            password: Password used to decrypt the profile.
+            dry_run: If True, report changes without saving them.
+        """
         profile = self._storage.load_profile(profile_name, password)
         if profile is None:
             print(f"Profile '{profile_name}' not found.")
@@ -36,6 +43,12 @@ class TrimCommand:
         print(f"Trimmed {report.changed_count} variable(s) in '{profile_name}'.")
 
     def show_report(self, profile_name: str, password: str) -> None:
+        """Display a summary report of whitespace in a profile's variables.
+
+        Args:
+            profile_name: Name of the profile to inspect.
+            password: Password used to decrypt the profile.
+        """
         profile = self._storage.load_profile(profile_name, password)
         if profile is None:
             print(f"Profile '{profile_name}' not found.")
