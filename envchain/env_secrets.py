@@ -77,3 +77,16 @@ class SecretScanner:
             elif not only_flagged:
                 out[name] = value
         return out
+
+    def redact(self, text: str, variables: Dict[str, str]) -> str:
+        """Replace any secret variable values found verbatim in *text* with masks.
+
+        Useful for sanitising log lines or command output that may inadvertently
+        contain the raw value of a secret environment variable.
+        """
+        for name, value in variables.items():
+            if not value:
+                continue
+            if self.is_secret_name(name) or self.is_secret_value(value):
+                text = text.replace(value, self.mask(value))
+        return text
