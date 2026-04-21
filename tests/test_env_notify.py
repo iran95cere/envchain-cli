@@ -33,6 +33,10 @@ class TestNotification:
         n = Notification(message="hi")
         assert n.level == NotifyLevel.INFO
 
+    def test_default_profile_is_none(self):
+        n = Notification(message="hi")
+        assert n.profile is None
+
 
 class TestNotificationBus:
     def test_publish_calls_handler(self, bus):
@@ -48,6 +52,11 @@ class TestNotificationBus:
         bus.unsubscribe(received.append)
         bus.notify("msg")
         assert len(received) == 0
+
+    def test_unsubscribe_nonexistent_handler_does_not_raise(self, bus):
+        """Unsubscribing a handler that was never registered should not raise."""
+        handler = lambda n: None  # noqa: E731
+        bus.unsubscribe(handler)  # should be a no-op
 
     def test_history_stores_notifications(self, bus):
         bus.notify("a")
